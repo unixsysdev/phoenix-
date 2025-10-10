@@ -1,0 +1,66 @@
+# Tiny training config for quick smoke tests on small datasets
+
+model:
+  name: "Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8"
+  type: "qwen3_moe"
+  device_map: "auto"
+
+training:
+  micro_batch_size: 2
+  gradient_accumulation_steps: 1
+  max_steps: 50
+  learning_rate: 1e-4
+  weight_decay: 0.01
+  warmup_steps: 0
+  max_grad_norm: 1.0
+
+  use_lora: true
+  lora_config_path: "configs/lora_configs.yaml"
+
+  multi_head: true
+  heads: ["ar", "diffusion", "length"]
+
+  diffusion:
+    mask_ratio_range: [0.2, 0.8]
+    steps: 20
+    inference_steps: 20
+    scheduler: "cosine"
+
+  # Keep verification off for tiny runs (Bend/HVM optional)
+  seed_diffusion:
+    on_policy_learning: false
+
+  # Logging / checkpointing
+  save_steps: 0
+  save_total_limit: 1
+  logging_steps: 5
+  eval_steps: 25
+  output_dir: "logs/tiny"
+
+data:
+  train_path: "data/train_samples.json"
+  eval_path: "data/val_samples.json"
+  max_length: 512
+  truncation: true
+  padding: "max_length"
+  shuffle: true
+  seed: 42
+
+  task_weights:
+    ar: 1.0
+    diffusion: 0.7
+    length: 0.3
+
+verifier:
+  bend:
+    enabled: false
+  hvm:
+    enabled: false
+  verification_frequency: 0
+
+logging:
+  level: "INFO"
+  log_dir: "logs"
+
+hardware:
+  gpu_ids: [0]

@@ -1,0 +1,26 @@
+# LoRA Configuration for Different Heads
+
+ar_head:
+  task_type: "CAUSAL_LM"
+  r: 128
+  lora_alpha: 256
+  lora_dropout: 0.05
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+  bias: "none"
+
+diffusion_head:
+  task_type: "CAUSAL_LM"
+  r: 128
+  lora_alpha: 256
+  lora_dropout: 0.05
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+  bias: "none"
+
+length_head:
+  task_type: "SEQ_CLS"
+  r: 64
+  lora_alpha: 128
+  lora_dropout: 0.05
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"]
+  bias: "none"
+  num_labels: 20  # Length buckets

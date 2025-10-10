@@ -1,0 +1,165 @@
+# Configuration for Qwen3-Coder-30B-A3B-Instruct-FP8 with LoRA training
+# This model has 30.5B total parameters with 3.3B active (8 experts out of 128)
+
+model:
+  name: "Qwen/Qwen3-Coder-30B-A3B-Instruct-FP8"
+  type: "qwen3_moe"
+  total_params: 30.5B
+  active_params: 3.3B
+  num_experts: 128
+  active_experts: 8
+  context_length: 262144  # 256K native, extendable to 1M with Yarn
+  quantization: "fp8"
+  dtype: "auto"
+  device_map: "auto"
+
+training:
+  # Training parameters
+  micro_batch_size: 16
+  gradient_accumulation_steps: 1
+  max_steps: 40000
+  learning_rate: 1e-4
+  weight_decay: 0.01
+  warmup_steps: 500
+  max_grad_norm: 1.0
+  
+  # LoRA settings
+  use_lora: true
+  lora_config_path: "configs/lora_configs.yaml"
+  
+  # Multi-head settings
+  multi_head: true
+  heads: ["ar", "diffusion", "length"]
+  
+  # Diffusion settings
+  diffusion:
+    mask_ratio_range: [0.1, 0.9]
+    steps: 100
+    inference_steps: 50
+    scheduler: "cosine"
+    two_stage_training: true
+    stage1_steps: 20000
+    stage2_steps: 20000
+    
+  # Seed Diffusion optimizations
+  seed_diffusion:
+    constrained_order: true
+    on_policy_learning: true
+    verifier: "bend_hvm"
+    block_wise_parallel: true
+    block_size: 128
+    kv_caching: true
+    
+  # Memory optimization
+  gradient_checkpointing: true
+  mixed_precision: "bf16"
+  use_flash_attn: true
+  
+  # Hardware settings
+  dataloader_num_workers: 4
+  pin_memory: true
+  
+  # Checkpointing
+  save_steps: 5000
+  save_total_limit: 3
+  logging_steps: 100
+  eval_steps: 2000
+  
+  # Output directory
+  output_dir: "logs/qwen3_coder_30b_moe_lora"
+  
+data:
+  # Dataset configuration
+  train_path: "data/code_dataset"
+  eval_path: "data/code_dataset_eval"
+  
+  # Tokenization
+  max_length: 2048
+  truncation: true
+  padding: "max_length"
+  
+  # Data loading
+  shuffle: true
+  seed: 42
+  
+  # Multi-task data weights
+  task_weights:
+    ar: 1.0
+    diffusion: 0.7
+    length: 0.3
+
+# Bend/HVM Verifier Configuration
+verifier:
+  bend:
+    enabled: true
+    path: "bend"
+    timeout: 30
+    use_cuda: true
+    backend: "run-cu"  # CUDA backend for parallel execution
+    
+  hvm:
+    enabled: true
+    path: "hvm"
+    timeout: 30
+    
+  on_policy_learning:
+    enabled: true
+    reward_history_file: "logs/reward_history.json"
+    target_steps: 50
+    reward_weights:
+      correctness: 1.0
+      speed: 0.5
+      efficiency: 0.2
+    
+  verification_frequency: 100  # Verify every N steps
+  test_cases_file: "data/test_cases.json"
+
+# Evaluation Configuration
+evaluation:
+  enabled: true
+  eval_steps: 2000
+  save_best_model: true
+  metrics: ["human_eval", "mbpp", "canitedit"]
+  
+  # Generation settings for evaluation
+  generation:
+    max_new_tokens: 512
+    temperature: 0.7
+    top_p: 0.8
+    top_k: 20
+    repetition_penalty: 1.05
+    num_return_sequences: 1
+    
+  # Diffusion inference settings
+  diffusion_inference:
+    steps: 50
+    guidance_scale: 1.0
+    eta: 0.0
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  log_dir: "logs"
+  
+  # Wandb logging (optional)
+  wandb:
+    enabled: false
+    project: "qwen3-diffusion-lora"
+    entity: null
+    tags: ["qwen3", "diffusion", "lora", "bend"]
+    
+# Hardware Configuration
+hardware:
+  # GPU settings
+  gpu_ids: [0]  # CUDA device IDs
+  mixed_precision: true
+  fp8: true  # Use FP8 for base model
+  
+  # Memory optimization
+  max_memory_mb: 120000  # 120GB for 128GB GPU
+  memory_efficient_attention: true
+  
+  # Parallel settings
+  dataloader_pin_memory: true
+  dataloader_persistent_workers: true

@@ -1,0 +1,57 @@
+[
+  {
+    "prompt": "def calculate_sum(numbers):",
+    "code": "    total = 0\n    for n in numbers:\n        total += n\n    return total\n",
+    "language": "python"
+  },
+  {
+    "prompt": "def factorial(n):",
+    "code": "    if n < 2:\n        return 1\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result\n",
+    "language": "python"
+  },
+  {
+    "prompt": "def fibonacci(n):",
+    "code": "    a, b = 0, 1\n    for _ in range(n):\n        a, b = b, a + b\n    return a\n",
+    "language": "python"
+  },
+  {
+    "prompt": "def is_prime(x):",
+    "code": "    if x < 2:\n        return False\n    i = 2\n    while i * i <= x:\n        if x % i == 0:\n            return False\n        i += 1\n    return True\n",
+    "language": "python"
+  },
+  {
+    "prompt": "def reverse_string(s):",
+    "code": "    return s[::-1]\n",
+    "language": "python"
+  },
+  {
+    "prompt": "def binary_search(arr, target):",
+    "code": "    lo, hi = 0, len(arr) - 1\n    while lo <= hi:\n        mid = (lo + hi) // 2\n        if arr[mid] == target:\n            return mid\n        if arr[mid] < target:\n            lo = mid + 1\n        else:\n            hi = mid - 1\n    return -1\n",
+    "language": "python"
+  },
+  {
+    "prompt": "def gcd(a, b):",
+    "code": "    while b:\n        a, b = b, a % b\n    return a\n",
+    "language": "python"
+  },
+  {
+    "prompt": "class Counter:",
+    "code": "    def __init__(self):\n        self.value = 0\n\n    def inc(self, n=1):\n        self.value += n\n        return self.value\n",
+    "language": "python"
+  },
+  {
+    "prompt": "def merge_sorted(a, b):",
+    "code": "    i, j = 0, 0\n    out = []\n    while i < len(a) and j < len(b):\n        if a[i] <= b[j]:\n            out.append(a[i]); i += 1\n        else:\n            out.append(b[j]); j += 1\n    out.extend(a[i:])\n    out.extend(b[j:])\n    return out\n",
+    "language": "python"
+  },
+  {
+    "prompt": "def unique(items):",
+    "code": "    seen = set()\n    out = []\n    for x in items:\n        if x not in seen:\n            seen.add(x)\n            out.append(x)\n    return out\n",
+    "language": "python"
+  },
+  {
+    "prompt": "def clamp(x, lo, hi):",
+    "code": "    if x < lo:\n        return lo\n    if x > hi:\n        return hi\n    return x\n",
+    "language": "python"
+  }
+]
