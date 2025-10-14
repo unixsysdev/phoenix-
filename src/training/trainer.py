@@ -102,7 +102,7 @@ class MultiHeadTrainer:
         max_steps = self.training_config.get("max_steps", 1000)
         warmup_steps = self.training_config.get("warmup_steps", 0)
         self.lr_scheduler = get_linear_schedule_with_warmup(
-            self.optimizer, warmup_steps=warmup_steps, num_training_steps=max_steps
+            self.optimizer, num_warmup_steps=warmup_steps, num_training_steps=max_steps
         )
 
 
