@@ -155,7 +155,13 @@ class MultiHeadCoder(nn.Module):
                 return_dict=True,
                 **kwargs,
             )
-            pooled = outputs.last_hidden_state[:, 0, :]
+            hidden_states = getattr(outputs, "hidden_states", None)
+            if hidden_states is None or len(hidden_states) == 0:
+                raise RuntimeError(
+                    "Model did not return hidden_states; cannot compute length logits."
+                )
+            last_hidden = hidden_states[-1]
+            pooled = last_hidden[:, 0, :]
             logits = self.length_classifier(pooled)
             return SequenceClassifierOutput(logits=logits)
 

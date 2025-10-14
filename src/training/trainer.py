@@ -283,17 +283,17 @@ class MultiHeadTrainer:
         total_loss = torch.tensor(0.0, device=self.device)
         metrics: Dict[str, float] = {}
 
-        if "ar_input_ids" in batch:
+        if "ar_input_ids" in batch and self.task_weights.get("ar", 0.0) > 0.0:
             ar_loss = self._compute_ar_loss(batch)
             total_loss = total_loss + self.task_weights.get("ar", 1.0) * ar_loss
             metrics["ar_loss"] = ar_loss.detach().item()
 
-        if "diff_input_ids" in batch:
+        if "diff_input_ids" in batch and self.task_weights.get("diffusion", 0.0) > 0.0:
             diff_loss = self._compute_diffusion_loss(batch)
             total_loss = total_loss + self.task_weights.get("diffusion", 0.7) * diff_loss
             metrics["diffusion_loss"] = diff_loss.detach().item()
 
-        if "length_input_ids" in batch:
+        if "length_input_ids" in batch and self.task_weights.get("length", 0.0) > 0.0:
             length_loss = self._compute_length_loss(batch)
             total_loss = total_loss + self.task_weights.get("length", 0.3) * length_loss
             metrics["length_loss"] = length_loss.detach().item()
