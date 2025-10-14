@@ -240,11 +240,39 @@ class MultiHeadCoder(nn.Module):
     def save_adapters(self, save_dir: str) -> None:
         if not self.lora_model:
             raise RuntimeError("LoRA adapters are not initialised.")
-        self.lora_model.save_pretrained(save_dir)
-        torch.save(self.length_classifier.state_dict(), f"{save_dir}/length_head.pt")
+        # Ensure diffusion adapter is the one we persist by default
+        try:
+            self.lora_model.set_adapter("diffusion")
+        except Exception:
+            pass
+        # Prefer saving only the selected adapter to a flat folder structure
+        try:
+            self.lora_model.save_pretrained(save_dir, selected_adapters=["diffusion"])  # peft>=0.10
+        except TypeError:
+            # Fallback: save all adapters; loader will pick the right one
+            self.lora_model.save_pretrained(save_dir)
+        # Length head is optional in diffusion-only runs; save if present
+        if self.length_classifier is not None:
+            try:
+                torch.save(self.length_classifier.state_dict(), f"{save_dir}/length_head.pt")
+            except Exception:
+                pass
 
     def load_adapters(self, save_dir: str) -> None:
-        self.lora_model = PeftModel.from_pretrained(self.base_model, save_dir)
+        import os
+        # Resolve actual adapter directory (in case artifacts are nested)
+        adapter_path = save_dir
+        if not os.path.exists(os.path.join(adapter_path, "adapter_config.json")):
+            # Search one level down for a folder that contains adapter_config.json
+            candidates = [
+                os.path.join(adapter_path, d)
+                for d in os.listdir(adapter_path)
+                if os.path.isdir(os.path.join(adapter_path, d))
+                and os.path.exists(os.path.join(adapter_path, d, "adapter_config.json"))
+            ]
+            if candidates:
+                adapter_path = candidates[0]
+        self.lora_model = PeftModel.from_pretrained(self.base_model, adapter_path)
 
         length_head_path = f"{save_dir}/length_head.pt"
         if self.length_classifier is None:
